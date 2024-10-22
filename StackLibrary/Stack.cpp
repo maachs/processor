@@ -89,7 +89,7 @@ void ReallocPush(Stack_t* stk)
     stk->data[stk->capacity] = CANARY;
 }
 
-ErrorCode StackPop(Stack_t* stk, StackElem* value)
+int StackPop(Stack_t* stk)
 {
     assert(value);
     #ifdef DEBUG
@@ -99,7 +99,7 @@ ErrorCode StackPop(Stack_t* stk, StackElem* value)
         stk->struct_hash = stk->buffer_struct_hash;
     #endif
 
-    *value = stk->data[stk->size];
+    StackElem value = stk->data[stk->size];
     stk->size--;
 
     stk->data[stk->size + 1] = POISON;
@@ -115,7 +115,7 @@ ErrorCode StackPop(Stack_t* stk, StackElem* value)
         VERIFY_STACK(stk);
     #endif
 
-    return SUCCESS;
+    return value;
 }
 
 void ReallocPop(Stack_t* stk)
@@ -166,7 +166,7 @@ void StackDump(Stack_t* stk)
             printf("data\n{\n");
             for (int elem = 0; elem < stk->capacity + 2; elem++)
             {
-                fprintf(stdout, "   [%d] = %lg\n", elem - 1, stk->data[elem - 1]);
+                fprintf(stdout, "   [%d] = %d\n", elem - 1, stk->data[elem - 1]);
             }
             printf("}\n");
         }

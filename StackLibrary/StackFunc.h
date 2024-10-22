@@ -15,7 +15,7 @@ void PrintError(Stack_t* stk);
 
 ErrorCode StackPush(Stack_t* stk, StackElem value);
 
-ErrorCode StackPop(Stack_t* stk, StackElem* pop);
+int StackPop(Stack_t* stk);
 
 void ReallocPush(Stack_t* stk);
 

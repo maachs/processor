@@ -9,11 +9,11 @@
 
 //#define DEBUG
 
-typedef double StackElem;
+typedef int StackElem;
 
 const int CAPACITY_MIN = 10;
 
-const StackElem POISON = -331272.2;
+const StackElem POISON = -331;
 
 const StackElem CANARY = 0xDED;
 

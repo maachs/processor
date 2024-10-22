@@ -1,4 +1,0 @@
-PUSH 20
-PUSH 3
-HLT
-DIV
