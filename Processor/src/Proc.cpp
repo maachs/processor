@@ -1,32 +1,33 @@
 #include "ProcFunc.h"
 
-int main()
+int main(int argc, char** argv)
 {
     SPU spu = {};
     struct stat buffer = {};
 
-    stat(MACHINE_CODE, &buffer);
+    if(argc != 2)
+    {
+        printf("argc error");
+        return -1;
+    }
 
-    InitCode(&spu, buffer.st_size);
+    stat(argv[1], &buffer);
+
+    InitCode(&spu, buffer.st_size, argv);
+
+    SpuCtor(&spu);
 
     if(RunCode(&spu, buffer.st_size) != SUCCESS) return -1;
 
-    DtorProc(&spu);
+    //DtorProc(&spu);
 
 }
 
-/*INSTRUCTION(5, ADD,  {
-    StackElem var1 = pop();
-    StackElem var2 = pop();
-
-    push(var1 + var2)
-})*/
-
-void InitCode(SPU* spu, int code_size)
+void InitCode(SPU* spu, int code_size, char** argv)
 {
     assert(spu);
 
-    FILE* asm_code = fopen(MACHINE_CODE, "r");
+    FILE* asm_code = fopen(argv[1], "r");
 
     if(asm_code == NULL){
         printf("Cannot open asm file");
@@ -39,9 +40,9 @@ void InitCode(SPU* spu, int code_size)
         spu->stk.error_code = CALLOC_ERROR;
     }
 
-    for(unsigned long int elem = 0; elem < code_size; elem++)
+    for(long int elem = 0; elem < code_size; elem++)
     {
-        fscanf(asm_code, "%x", &spu->code[elem]);
+        fscanf(asm_code, "%d", &spu->code[elem]);
     }
 
     fclose(asm_code);
@@ -61,6 +62,7 @@ ErrorCode SpuCtor(SPU* spu)
     {
         return CALLOC_ERROR;
     }
+
 
     return SUCCESS;
 }
@@ -83,11 +85,6 @@ ErrorCode RunCode(SPU* spu, unsigned long int code_size)
     while(true)
     {
         switch(spu->code[spu->ip]){
-            case PUSHR:
-            {
-                DoPushr(spu);
-                break;
-            }
             case PUSH:
             {
                 DoPush(spu);
@@ -123,11 +120,11 @@ ErrorCode RunCode(SPU* spu, unsigned long int code_size)
                 DoOut(spu);
                 break;
             }
-            /*case IN:
+            case IN:
             {
                 DoIn(spu);
                 break;
-            }*/
+            }
             case DUMP:
             {
                 DoDump(spu, code_size);
@@ -145,6 +142,8 @@ ErrorCode RunCode(SPU* spu, unsigned long int code_size)
             }
             case HLT:
             {
+                DtorProc(spu);
+
                 return SUCCESS;
                 break;
             }
@@ -155,59 +154,49 @@ ErrorCode RunCode(SPU* spu, unsigned long int code_size)
    }
 }
 
-ErrorCode DoPushr(SPU* spu)
-{
-    assert(spu);
-    assert(spu->code);
-
-    switch(spu->code[spu->ip+1]){
-        case Ax:
-        {
-            StackElem elem1 = spu->reg[Ax];
-            StackPush(&spu->stk, elem1);
-            spu->ip += 2;
-            break;
-        }
-        case Bx:
-        {
-            StackElem elem2 = spu->reg[Bx];
-            StackPush(&spu->stk, elem2);
-            spu->ip += 2;
-            break;
-        }
-        case Cx:
-        {
-            StackElem elem3 = spu->reg[Cx];
-            StackPush(&spu->stk, elem3);
-            spu->ip += 2;
-            break;
-        }
-        case Dx:
-        {
-            StackElem elem4 = spu->reg[Dx];
-            StackPush(&spu->stk, elem4);
-            spu->ip += 2;
-            break;
-        }
-        default:
-            printf("register error");
-            spu->stk.error_code = COMAND_ERROR;
-    }
-
-    return SUCCESS;
-
-}
 ErrorCode DoPush(SPU* spu)
 {
     assert(spu);
     assert(spu->code);
 
-    int elem = spu->code[spu->ip+1];
+    StackElem elem = GetArgPush(spu);
+
     StackPush(&spu->stk, elem);
+
     spu->ip += 2;
-    return SUCCESS;
 
     return SUCCESS;
+}
+
+int GetArgPush(SPU* spu)
+{
+    assert(spu);
+
+    //int operation_code = spu->code[spu->ip];
+    spu->ip++;
+
+    int arg_type = spu->code[spu->ip];
+    spu->ip++;
+
+    int result = 0;
+
+    if(arg_type & IN_STACK)
+    {
+        result = spu->code[spu->ip];
+        spu->ip++;
+    }
+
+    if(arg_type & IN_REG)
+    {
+        result += spu->reg[spu->code[spu->ip]];
+        spu->ip++;
+    }
+    if(arg_type & IN_RAM)
+    {
+        result = spu->ram[result];
+    }
+
+    return result;
 }
 
 ErrorCode DoPop(SPU* spu)
@@ -215,42 +204,44 @@ ErrorCode DoPop(SPU* spu)
     assert(spu);
     assert(spu->code);
 
-    switch(spu->code[spu->ip+1]){
-        case Ax:
-        {
-            StackElem value = StackPop(&spu->stk);
-            spu->reg[0] = value;
-            spu->ip += 2;
-            break;
-        }
-        case Bx:
-        {
-            StackElem value = StackPop(&spu->stk);
-            spu->reg[1] = value;
-            spu->ip += 2;
-            break;
-        }
-        case Cx:
-        {
-            StackElem value = StackPop(&spu->stk);
-            spu->reg[2] = value;
-            spu->ip += 2;
-            break;
-        }
-        case Dx:
-        {
-            StackElem value = StackPop(&spu->stk);
-            spu->reg[3] = value;
-            spu->ip += 2;
-            break;
-        }
-        default:
-            printf("Unknown POP comand");
-            return COMAND_ERROR;
-    }
+    int* addr = GetArgPop(spu);
+
+    StackElem value = StackPop(&spu->stk);
+
+    *addr = value;
+
+    spu->ip++;
 
     return SUCCESS;
 
+}
+
+int* GetArgPop(SPU* spu)
+{
+    assert(spu);
+
+    //int operation_code = spu->code[spu->ip];
+    spu->ip++;
+
+    int arg_type = spu->code[spu->ip];
+    spu->ip++;
+
+    int result = 0;
+
+    if(arg_type & IN_STACK)
+    {
+        result = spu->code[spu->ip];
+    }
+    if(arg_type & IN_REG)
+    {
+        return &spu->reg[spu->ip];
+    }
+    if(arg_type & IN_RAM)
+    {
+        return &spu->ram[result];
+    }
+
+    return NULL;
 }
 
 ErrorCode DoAdd(SPU* spu)
@@ -258,7 +249,10 @@ ErrorCode DoAdd(SPU* spu)
     assert(spu);
     assert(spu->code);
 
-    StackPush(&spu->stk, StackPop(&spu->stk) + StackPop(&spu->stk));
+    StackElem val_1 = StackPop(&spu->stk);
+    StackElem val_2 = StackPop(&spu->stk);
+
+    StackPush(&spu->stk, val_1 + val_2);
 
     spu->ip++;
 
@@ -270,7 +264,10 @@ ErrorCode DoSub(SPU* spu)
     assert(spu);
     assert(spu->code);
 
-    StackPush(&spu->stk, StackPop(&spu->stk) + StackPop(&spu->stk));
+    StackElem val_1 = StackPop(&spu->stk);
+    StackElem val_2 = StackPop(&spu->stk);
+
+    StackPush(&spu->stk, val_1 - val_2);
 
     spu->ip++;
 
@@ -282,7 +279,10 @@ ErrorCode DoMul(SPU* spu)
     assert(spu);
     assert(spu->code);
 
-    StackPush(&spu->stk, StackPop(&spu->stk) * StackPop(&spu->stk));
+    StackElem val_1 = StackPop(&spu->stk);
+    StackElem val_2 = StackPop(&spu->stk);
+
+    StackPush(&spu->stk, val_1 * val_2);
 
     spu->ip++;
 
@@ -294,7 +294,9 @@ ErrorCode DoDiv(SPU* spu)
     assert(spu);
     assert(spu->code);
 
-    StackPush(&spu->stk, StackPop(&spu->stk) / StackPop(&spu->stk));
+    StackElem val_1 = StackPop(&spu->stk);
+    StackElem val_2 = StackPop(&spu->stk);
+    StackPush(&spu->stk, val_1 / val_2);
 
     spu->ip++;
 
@@ -322,6 +324,8 @@ ErrorCode DoIn(SPU* spu)
     scanf("%d", &elem);
 
     StackPush(&spu->stk, elem);
+
+    return SUCCESS;
 }
 
 ErrorCode DoDump(SPU* spu, unsigned long int code_size)
@@ -329,26 +333,28 @@ ErrorCode DoDump(SPU* spu, unsigned long int code_size)
     assert(spu);
     assert(spu->code);
 
-    printf("----------------------------------------------------");
-    printf("code: ");
+    printf("----------------------------------------------------\n");
+    printf("code: \n");
 
     for(unsigned int num = 0; num < code_size; num++)
     {
-        printf("%x ", num);
+        printf("%d  ", num);
     }
 
     printf("\n");
 
     for(unsigned long int code_elem = 0; code_elem < code_size; code_elem++)
     {
-        printf("%x ", spu->code[code_elem]);
+        printf("%d  ", spu->code[code_elem]);
     }
     printf("\n");
 
     for(int ip_elem = 0; ip_elem < spu->ip; ip_elem++)
     {
-        printf("^");
+        printf("   ");
     }
+    printf("^\n");
+
     printf(" ip = %d\n", spu->ip);
 
     printf("___registres___\n");
@@ -359,7 +365,7 @@ ErrorCode DoDump(SPU* spu, unsigned long int code_size)
 
     StackDump(&spu->stk);
 
-    printf("---------------------------------------------------");
+    printf("---------------------------------------------------\n");
 
     spu->ip++;
 

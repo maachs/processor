@@ -55,9 +55,12 @@ ErrorCode StackPush(Stack_t* stk, StackElem value)
 
     if (stk->size == stk->capacity - 1)
     {
+        printf("  ");
         ReallocPush(stk);
     }
+
     stk->data[stk->size] = value;
+
     stk->size++;
     #ifdef DEBUG
         CALC_HASH;
@@ -96,10 +99,10 @@ int StackPop(Stack_t* stk)
         stk->struct_hash = stk->buffer_struct_hash;
     #endif
 
-    StackElem value = stk->data[stk->size];
+    StackElem value = stk->data[stk->size - 1];
     stk->size--;
 
-    stk->data[stk->size + 1] = POISON;
+    stk->data[stk->size] = POISON;
 
     if ((stk->size == stk->capacity / 4) && (stk->size > CAPACITY_MIN))
     {

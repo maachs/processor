@@ -1,22 +1,25 @@
 #ifndef PROC_FUNC_
 #define PROC_FUNC_
 
-#include "Stack.h"
-#include "StackFunc.h"
 #include "Processor.h"
-#include "ErrorCode.h"
-
-const char* MACHINE_CODE = "assembler_code.txt";
 
 ErrorCode SpuCtor(SPU* spu);
 
 void DtorProc(SPU* spu);
+
+int GetArgPush(SPU* spu);
+
+int* GetArgPop(SPU* spu);
+
+void InitCode(SPU* spu, int code_size, char** argv);
 
 ErrorCode RunCode(SPU* spu, unsigned long int code_size);
 
 ErrorCode DoPush(SPU* spu);
 
 ErrorCode DoAdd(SPU* spu);
+
+ErrorCode DoIn(SPU* spu);
 
 ErrorCode DoDiv(SPU* spu);
 

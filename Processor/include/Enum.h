@@ -1,32 +1,5 @@
-#ifndef ASSEMBLER_
-#define ASSEMBLER_
-
-#include <stdio.h>
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys\stat.h>
-
-const int MAX_REG_LEN      = 3;
-const int MAX_LABLES_LEN   = 7;
-const int MAX_AMOUNT_MARKS = 10;
-const int MAX_COMMAND_LEN  = 6;
-const int MAX_PUSH_ARG     = 4;
-
-struct Marks
-{
-    char lables[MAX_LABLES_LEN];
-    int  address;
-};
-
-struct ASM
-{
-    FILE* commands;
-    FILE* machine_code;
-    int   count_commands;
-    int   count_lables;
-    Marks mark[MAX_AMOUNT_MARKS];
-};
+#ifndef ENUUMS_
+#define ENUUMS_
 
 enum ErrorCode
 {
@@ -39,15 +12,7 @@ enum ErrorCode
     CAPACITY_EQUAL_SIZE = 5,
     CALLOC_ERROR        = 10,
     COMAND_ERROR        = 8,
-    OPEN_FILE_ERROR     = 9,
-};
-
-enum Register
-{
-    Ax = 1,
-    Bx = 2,
-    Cx = 3,
-    Dx = 4,
+    OPEN_FILE_ERROR     = 9
 };
 
 enum Arg
@@ -59,6 +24,14 @@ enum Arg
     RAM_STACK     = 5,
     RAM_REG       = 6,
     RAM_STACK_REG = 7
+};
+
+enum Register
+{
+    Ax = 0,
+    Bx = 1,
+    Cx = 2,
+    Dx = 3
 };
 
 enum Comands
@@ -74,8 +47,7 @@ enum Comands
     DUMP  = 9,
     JMP   = 10,
     JB    = 11,
-    HLT   = 12,
-    PUSHR = 13,
+    HLT   = 12
 };
 
 #endif
