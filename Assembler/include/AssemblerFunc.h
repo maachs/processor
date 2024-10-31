@@ -3,7 +3,7 @@
 
 #include "Assembler.h"
 
-ErrorCode ScanCode(ASM* assm, char** argv);
+ErrorCode ScanCode(ASM* assm, char** argv); // TODO assm - rename
 
 void FillRegisters(ASM* assm, char* arg_reg);
 

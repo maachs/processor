@@ -11,7 +11,7 @@ enum ErrorCode
     CAPACITY_ERROR      = 7,
     CAPACITY_EQUAL_SIZE = 5,
     CALLOC_ERROR        = 10,
-    COMAND_ERROR        = 8,
+    COMMAND_ERROR        = 8,
     OPEN_FILE_ERROR     = 9
 };
 
@@ -26,6 +26,7 @@ enum Arg
     RAM_STACK_REG = 7
 };
 
+// TODO move the following code into Processor.h
 enum Register
 {
     Ax = 0,
@@ -34,7 +35,7 @@ enum Register
     Dx = 3
 };
 
-enum Comands
+enum Commands
 {
     PUSH  = 1,
     POP   = 2,
@@ -47,7 +48,11 @@ enum Comands
     DUMP  = 9,
     JMP   = 10,
     JB    = 11,
-    HLT   = 12
+    HLT   = 12,
+    CALL  = 13,
+    RET   = 14,
+    SQRT  = 15,
+    VIS   = 16
 };
 
 #endif

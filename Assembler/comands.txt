@@ -1,10 +1,1 @@
-PUSH 6
-LOOP:
-IN
-OUT
-TY:
-JMP LOOP:
-POP Bx
-PUSH [ 7 ]
-JB TY:
-HLT
+PUSH 3

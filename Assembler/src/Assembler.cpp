@@ -1,25 +1,5 @@
 #include "AssemblerFunc.h"
 
-int main(int argc, char** argv)
-{
-    ASM assm = {};
-
-
-    if(argc != 3)
-    {
-        printf("argc error");
-        return -1;
-    }
-
-    ScanCode(&assm, argv);
-
-    assm.count_commands = 0;
-
-    ScanCode(&assm, argv);
-
-    return 0;
-}
-
 ErrorCode ScanCode(ASM* assm, char** argv)
 {
     assert(argv);
@@ -37,17 +17,17 @@ ErrorCode ScanCode(ASM* assm, char** argv)
         return SCAN_CODE_ERROR;
     }
 
-    char* scanf_commands = (char*) calloc(MAX_COMMAND_LEN, sizeof(char));
+    char* scanf_commands_first = (char*) calloc(MAX_COMMAND_LEN, sizeof(char));
 
     int arg = 0, com = 0;
     char arg_chr[MAX_COMMAND_LEN] = {};
     char push_com[MAX_PUSH_ARG] = {};
 
-    while(fscanf(assm->commands, "%s", scanf_commands) != EOF)
+    while(fscanf(assm->commands, "%s", scanf_commands_first) != EOF)
     {
-        char* scan_comands = scanf_commands;
+        char* scan_commands = scanf_commands_first;
 
-        if(stricmp(scan_comands, "push") == 0)
+        if(stricmp(scan_commands, "push") == 0)
         {
             com = PUSH;
 
@@ -61,7 +41,7 @@ ErrorCode ScanCode(ASM* assm, char** argv)
                     {
                         fscanf(assm->commands, "%s", push_com); // arg register
 
-                        fscanf(assm->commands, "%s", arg_chr); // next simbol
+                        fscanf(assm->commands, "%s", arg_chr); // next symbol
 
                         if(strchr(arg_chr, '+'))
                         {
@@ -124,7 +104,7 @@ ErrorCode ScanCode(ASM* assm, char** argv)
             }
 
         }
-        if(stricmp(scan_comands, "pop") == 0)
+        if(stricmp(scan_commands, "pop") == 0)
         {
             com = POP;
 
@@ -149,7 +129,7 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
             continue;
         }
-        if(stricmp(scan_comands, "add") == 0)
+        if(stricmp(scan_commands, "add") == 0)
         {
             fprintf(assm->machine_code, "%d\n", ADD);
 
@@ -157,7 +137,7 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
             continue;
         }
-        if(stricmp(scan_comands, "sub") == 0)
+        if(stricmp(scan_commands, "sub") == 0)
         {
             fprintf(assm->machine_code, "%d\n", SUB);
 
@@ -165,7 +145,15 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
             continue;
         }
-        if(stricmp(scan_comands, "div") == 0)
+        if(stricmp(scan_commands, "vis") == 0)
+        {
+            fprintf(assm->machine_code, "%d\n", VIS);
+
+            assm->count_commands++;
+
+            continue;
+        }
+        if(stricmp(scan_commands, "div") == 0)
         {
             fprintf(assm->machine_code, "%d\n", DIV);
 
@@ -173,7 +161,15 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
             continue;
         }
-        if(stricmp(scan_comands, "mul") == 0)
+        if(stricmp(scan_commands, "sqrt") == 0)
+        {
+            fprintf(assm->machine_code, "%d\n", SQRT);
+
+            assm->count_commands++;
+
+            continue;
+        }
+        if(stricmp(scan_commands, "mul") == 0)
         {
             fprintf(assm->machine_code, "%d\n", MUL);
 
@@ -181,7 +177,7 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
             continue;
         }
-        if(stricmp(scan_comands, "out") == 0)
+        if(stricmp(scan_commands, "out") == 0)
         {
             fprintf(assm->machine_code, "%d\n", OUT);
 
@@ -189,7 +185,7 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
             continue;
         }
-        if(stricmp(scan_comands, "in") == 0)
+        if(stricmp(scan_commands, "in") == 0)
         {
             fprintf(assm->machine_code, "%d\n", IN);
 
@@ -197,7 +193,7 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
             continue;
         }
-        if(stricmp(scan_comands, "dump") == 0)
+        if(stricmp(scan_commands, "dump") == 0)
         {
             fprintf(assm->machine_code, "%d\n", DUMP);
 
@@ -205,7 +201,7 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
             continue;
         }
-        if(stricmp(scan_comands, "hlt") == 0)
+        if(stricmp(scan_commands, "hlt") == 0)
         {
             fprintf(assm->machine_code, "%d\n", HLT);
 
@@ -213,13 +209,37 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
             continue;
         }
-        if(stricmp(scan_comands, "jb") == 0)
+        if(stricmp(scan_commands, "call") == 0)
         {
             fscanf(assm->commands, "%s", arg_chr);
 
-            for(int label = 0; label < assm->count_lables; label++)
+            for(int label = 0; label < assm->count_labels; label++)
             {
-                if(stricmp(arg_chr, assm->mark[label].lables) == 0)
+                if(stricmp(arg_chr, assm->mark[label].labels) == 0)
+                {
+                    fprintf(assm->machine_code, "%d %d\n", CALL, assm->mark[label].address);
+                }
+            }
+
+            assm->count_commands += 2;
+
+            continue;
+        }
+        if(stricmp(scan_commands, "ret") == 0)
+        {
+            fprintf(assm->machine_code, "%d\n", RET);
+
+            assm->count_commands++;
+
+            continue;
+        }
+        if(stricmp(scan_commands, "jb") == 0)
+        {
+            fscanf(assm->commands, "%s", arg_chr);
+
+            for(int label = 0; label < assm->count_labels; label++)
+            {
+                if(stricmp(arg_chr, assm->mark[label].labels) == 0)
                 {
                     fprintf(assm->machine_code, "%d %d\n", JB, assm->mark[label].address);
                 }
@@ -229,13 +249,13 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
             continue;
         }
-        if(stricmp(scan_comands, "jmp") == 0)
+        if(stricmp(scan_commands, "jmp") == 0)
         {
             fscanf(assm->commands, "%s", arg_chr);
 
-            for(int label = 0; label < assm->count_lables; label++)
+            for(int label = 0; label < assm->count_labels; label++)
             {
-                if(stricmp(arg_chr, assm->mark[label].lables) == 0)
+                if(stricmp(arg_chr, assm->mark[label].labels) == 0)
                 {
                     fprintf(assm->machine_code, "%d %d\n", JMP, assm->mark[label].address);
                 }
@@ -245,9 +265,9 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
             continue;
         }
-        if(strchr(scan_comands, ':') != NULL)
+        if(strchr(scan_commands, ':') != NULL)
         {
-            CreateMarks(assm, scan_comands);
+            CreateMarks(assm, scan_commands);
 
             continue;
         }
@@ -255,8 +275,8 @@ ErrorCode ScanCode(ASM* assm, char** argv)
 
     fclose(assm->commands);
 
-    free(scanf_commands);
-    scanf_commands = NULL;
+    free(scanf_commands_first);
+    scanf_commands_first = NULL;
 
     fclose(assm->machine_code);
 
@@ -269,23 +289,23 @@ void CreateMarks(ASM* assm, char* arg_jmp)
     assert(assm);
     assert(assm->mark);
 
-    int check_lables = 0;
+    int labels_check = 0; // TODO rename
 
-    for(int check = 0; check < assm->count_lables; check++)
+    for(int check = 0; check < assm->count_labels; check++)
     {
-        if(!strcmp(arg_jmp, assm->mark[check].lables))
+        if(!strcmp(arg_jmp, assm->mark[check].labels))
         {
-            check_lables++;
+            labels_check++;
         }
     }
 
-    if(check_lables == 0)
+    if(labels_check == 0)
     {
-        strcpy(assm->mark[assm->count_lables].lables, arg_jmp);
+        strcpy(assm->mark[assm->count_labels].labels, arg_jmp);
 
-        assm->mark[assm->count_lables].address = assm->count_commands;
+        assm->mark[assm->count_labels].address = assm->count_commands;
 
-        assm->count_lables++;
+        assm->count_labels++;
     }
 }
 
@@ -306,7 +326,7 @@ void FillRegisters(ASM* assm, char* arg_reg)
     {
         fprintf(assm->machine_code, "%d", Cx);
     }
-    if(stricmp((const char*)arg_reg, "Dx") == 0)
+    if(stricmp((const char*)arg_reg, "dx") == 0)
     {
         fprintf(assm->machine_code, "%d", Dx);
     }

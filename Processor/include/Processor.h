@@ -7,23 +7,27 @@
 #include <stdint.h>
 #include <sys\stat.h>
 #include <string.h>
+#include <math.h>
 
 #include "Stack.h"
-#include "StackFunc.h"
 #include "StackFunc.h"
 #include "Enum.h"
 
 const int REGISTERS_NUM = 4;
 
-const int LEN_RAM       = 100;
+const int LEN_RAM       = 121;
+
+const int RAM_LINE_LEN  = 11;
 
 struct SPU
 {
     int     ip;
     int*    code;
     Stack_t stk;
+    Stack_t ret;
+    FILE*   out;
     int*    reg;
-    int    ram[LEN_RAM];
+    int     ram[LEN_RAM];
 };
 
 

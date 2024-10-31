@@ -8,14 +8,14 @@
 #include <sys\stat.h>
 
 const int MAX_REG_LEN      = 3;
-const int MAX_LABLES_LEN   = 7;
+const int MAX_LABELS_LEN   = 15;
 const int MAX_AMOUNT_MARKS = 10;
-const int MAX_COMMAND_LEN  = 6;
+const int MAX_COMMAND_LEN  = 7;
 const int MAX_PUSH_ARG     = 4;
 
 struct Marks
 {
-    char lables[MAX_LABLES_LEN];
+    char labels[MAX_LABELS_LEN];
     int  address;
 };
 
@@ -24,7 +24,7 @@ struct ASM
     FILE* commands;
     FILE* machine_code;
     int   count_commands;
-    int   count_lables;
+    int   count_labels;
     Marks mark[MAX_AMOUNT_MARKS];
 };
 
@@ -38,7 +38,7 @@ enum ErrorCode
     CAPACITY_ERROR      = 7,
     CAPACITY_EQUAL_SIZE = 5,
     CALLOC_ERROR        = 10,
-    COMAND_ERROR        = 8,
+    COMMAND_ERROR       = 8,
     OPEN_FILE_ERROR     = 9,
 };
 
@@ -61,7 +61,7 @@ enum Arg
     RAM_STACK_REG = 7
 };
 
-enum Comands
+enum Commands
 {
     PUSH  = 1,
     POP   = 2,
@@ -75,7 +75,10 @@ enum Comands
     JMP   = 10,
     JB    = 11,
     HLT   = 12,
-    PUSHR = 13,
+    CALL  = 13,
+    RET   = 14,
+    SQRT  = 15,
+    VIS   = 16
 };
 
 #endif
